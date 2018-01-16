@@ -47,6 +47,8 @@ rel_sup(C) == 2/5 < min_rel_sup
 
 X → Y (s,c)
 *s = support*: Probability that transaction supports X U Y
+
+TODO: why call it a probability when you can directly count it?
 *c = confidence*: Conditional probability that a transaction containing X also contains Y
 
 ``` 
@@ -77,7 +79,7 @@ conf(B,N) = sup(B U N) / sup(B) = 1 / 3 = 30%
 
 long patterns contain a combinatorial number of subpatterns. e.g:
 
-Transactional DataBase TBD1 with T1={a~1~...a~50~} T2={a~1~...a~100~}
+Transactional DataBase TDB1 with T1={a_1...a_50} T2={a_1...a_100}
 ``` 
 2-itemset: 100_choose_2  100!/2!(88!) = 4950
 3-itemset: 100_choose_3  100!/3!(87!) = 161700
@@ -85,5 +87,37 @@ Transactional DataBase TBD1 with T1={a~1~...a~50~} T2={a~1~...a~100~}
 total subpatterns: 100_choose_1 + ... + 100_choose_100 = too much!
 ``` 
 
+### Closed Patterns
 
+X is a *closed pattern* if it is frequent and there is no Y : Y is frequent and contains X AND sup(Y) == sup(X)
+
+closed patterns in TDB1 if min_sup =1
+``` 
+P1 = {a_1, ... ,a_50}  : sup(P1) = 2, no frequent super pattern with *same* support
+P2 = {a_1, ... ,a_100} : sup(P2) = 1, no frequent super pattern with *same* support
+``` 
+
+Closed parts provide *lossless* compression, they preserve the sup of subpatterns. e.g. 
+``` 
+P3 = {a_2, ... a_100} is _known_ to have sup(P3) = 1 , because P2 C P3 and P2 closed pattern 
+``` 
+
+### Max Patterns
+
+X is *max pattern* if it is frequent and there is no Y : Y is frequent and contains X
+``` 
+P = {a_1, ... ,a_100}  : sup(P) = 1, no frequent super pattern 
+``` 
+
+| Frequent P | sup | Closed, Max |
+|--------------------------------|
+| B,N,D      | 100 | C           |
+| B,C,N      | 200 | C,M         |
+| B,D,E      |  50 |             |
+| B,N,E,M    | 400 | C           |
+| B,N,D,E,M  |  50 | C,M         |
+
+Note there can't be an M only. All Max are closed.
+
+  
 # Efficient Pattern Mining Methods

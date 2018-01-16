@@ -16,13 +16,30 @@ course staff: cs-412ds-staff@lists.cs.illinois.edu
 ## Frequent Patterns
 
 | id | transactions |
-|----+--------------|
+|----|--------------|
 | 10 | B,D,N        |
 | 20 | B,C,D        |
 | 30 | B,D,E        |
 | 40 | N,E,M        |
 | 50 | N,C,E,M      |
 
+*support*: number of occurrences
 
+*relative support*: support / len(transactions)
 
+*min support*: threshold of interest
+
+*itemset*: { i } : i ∈ items 
+
+*K-itemset*: a set of items of len(itemset)==K
+
+*frequent*: if sup >= min_sup or rel_sup >= min_rel_sup
+
+``` 
+min_rel_sup == .5
+sup(B) == 3
+rel_sup(B) == 3/5 == 60% > min_rel_sup → frequent 
+rel_sup(C) == 2/5 < min_rel_sup
+
+``` 
 # Efficient Pattern Mining Methods

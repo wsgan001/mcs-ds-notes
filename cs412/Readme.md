@@ -73,4 +73,17 @@ conf(B,D) = sup(B U D) / sup(B) = 3 / 3 = 100% ✔
 conf(B,N) = sup(B U N) / sup(B) = 1 / 3 = 30% 
 ``` 
 
+## Compressed representation: closed and max patterns
+
+long patterns contain a combinatorial number of subpatterns. e.g:
+
+Transactional DataBase TBD1 with T1={a~1~...a~50~} T2={a~1~...a~100~}
+``` 
+2-itemset: 100_choose_2  100!/2!(88!) = 4950
+3-itemset: 100_choose_3  100!/3!(87!) = 161700
+...
+total subpatterns: 100_choose_1 + ... + 100_choose_100 = too much!
+``` 
+
+
 # Efficient Pattern Mining Methods

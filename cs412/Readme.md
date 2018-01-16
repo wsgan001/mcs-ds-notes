@@ -110,7 +110,7 @@ P = {a_1, ... ,a_100}  : sup(P) = 1, no frequent super pattern
 ``` 
 
 | Frequent P | sup | Closed, Max |
-|--------------------------------|
+|------------|-----|-------------|
 | B,N,D      | 100 | C           |
 | B,C,N      | 200 | C,M         |
 | B,D,E      |  50 |             |

@@ -195,7 +195,7 @@ for all item sets c in Ck :
  - Use special data structures:
     - *FPTree for FPGrowth* (discussed in course)
     - H Tree for H Mine
-	- Tree projection
+	- Tree projectiono
 
 ## Partitioning
 
@@ -265,3 +265,9 @@ which of these have support larger than 1? easy a,e.
 Tradeoff here is Tid sets can be very long. Expensive intersects and expensive in memory. The approach is to use *diffset* to keep track of the difference rather than intersection of ids.
 
 ## FPGrowth - Pattern Growth Approach
+
+TODO: FPGrowth
+
+Two relatively unexplained corollaries:
+ - In a single path prefix situation the mining can be decomposed into prefix mining and branches, afterwards concatenating the results.
+ - In case of data too big for memory, Partition can be done either by projection or partition (not detai (not really detailed in course, pg. 259)

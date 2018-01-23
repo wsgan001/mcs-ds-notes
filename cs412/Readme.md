@@ -231,13 +231,13 @@ Equivalence Class Transformation, *ECLAT*,
 
 
 ```
-| Tid | Itemset |		  | Item | TidList  |
-|-----+---------|		  |------+----------|
-|  10 | a,c,d,e |  	→ →   | a    | 10,20    |
-|  20 | a,b,e   |	  	  | b    | 20,30    |
-|  30 | b,c,e   |	  	  | c    | 10,30    |
-					  	  | d    | 10       |
-					  	  | e    | 10,20,30 |
+| Tid | Itemset |         | Item | TidList  |
+|-----+---------|         |------+----------|
+|  10 | a,c,d,e |	→ →   | a    | 10,20    |
+|  20 | a,b,e   |         | b    | 20,30    |
+|  30 | b,c,e   |         | c    | 10,30    |
+                          | d    | 10       |
+                          | e    | 10,20,30 |
 
 ```
 
@@ -247,14 +247,14 @@ To derive list of of ids t of a combination, e.g. t(ae) we take the intersection
 
 t(ae) = {10,20,30} intersect {10,20} = {10,20}
 
-*key properties:* 
+*key properties:*
  - t(x) = t(y) → x and y always happen together
  - t(x) subset of t(y) →  transaction having X always has Y
- 
+
  The support for an entry is simply len(TidList)
- 
+
  You can look for frequent patterns by intersecting items:
- 
+
  | a,b |    20 |
  | a,c |    10 |
  | a,d |    10 |
@@ -266,8 +266,361 @@ Tradeoff here is Tid sets can be very long. Expensive intersects and expensive i
 
 ## FPGrowth - Pattern Growth Approach
 
-TODO: FPGrowth
+The first step same as a priori: generate a list L of 1-itemset frequent patterns and their frequency. Order it.
 
-Two relatively unexplained corollaries:
+To construct an FPTree go through the whole database a second time, creating a tree with a branch per transaction, considering each itemset in L order. for example
+
+
+```
+
+        TID             L                   FPTree
+											    {}          {}              {}
+| t1 | i1,i2,i5 |   | i2 | 4 |               i2 : 1	   	  12 : 2   	 	 i2: : 3 -
+| t2 | i2,i4    |   | i1 | 2 |               /            /   \         /     \    ---\
+| t3 | i2,i3    |   | i4 | 2 |			   i1: 1   	   	i1: 1 i4: 1    i1: 1  i4: 1  i3: 1
+| t4 | i1,i2,i4 |   | i5 | 1 |             /            /             /
+										 i5: 1	   	   i5: 1   	   	 i5 : 1
+
+   	   	   	   							  after processing t1 , t2, t3 respectively
+```
+
+once the tree is constructed mining is reduced to creating "conditional databases", by considering each member of L a suffix and recording the branches as candidates in the conditional database.
+This is done starting in reverse L order. for example for i5 (with more items, see page 258) we end up with two paths
+
+{i2,i1,i3}:1
+{i2,i1}:1
+
+and then we construct another FPTree based on this (where i2 and i1 would end up with count two and i3 of 1. That single path is one of the stop cases of the recursion (The other emptiness) and generates all combinations of frequent patterns with i5.
+
+Two relatively unexplained corollaries in the slides made a bit clearer by pg 258:
  - In a single path prefix situation the mining can be decomposed into prefix mining and branches, afterwards concatenating the results.
  - In case of data too big for memory, Partition can be done either by projection or partition (not detai (not really detailed in course, pg. 259)
+
+NOTE: questions about FPtrees usually require deriving the x-conditional database (conditional pattern bases) given a tree:
+
+```
+FPTree
+{}															 Resulting conditional pattern bases
+ - f:4														 c f:3
+   - c:3													 a fc:3
+     - a:3													 b f:1, c:1
+	   - b:1												 p cb:1 fcam:2
+	      -m:1												 m fca:2, fcab:1
+	 - m:2
+	   - p:2
+     - b:1
+	   - m:1
+  - c:1
+     - b:1
+	   - p:1
+```
+
+## Mining closed datasets with CLOSET+
+
+Just a mention to efficient mining of closed datasets by using clever observations, implemented in a system called closet+. An example is if closed pattern Y appears every time X appears, Y can be merged into X.  Others not detailed.
+
+--- Week 2
+# Pattern Evaluation
+
+Evaluation can be subjective too: query based, against specific knowledge base (e.g. looking for freshness or unexpected), or interactive visual explorations.
+
+Limitations of Support/confidence
+
+|                | play ball | not play ball | sum row |
+| eat cereal     |       400 |           350 |     750 |
+| not eat cereal |       200 |            50 |     250 |
+| sum col        |       600 |           400 |    1000 |
+
+
+``` 
+ball → eat
+s = sup(X U Y) = 400/1000
+c = sup(X U Y) / sup (X) = 400/600 
+``` 
+
+play ball → eat cereal [40%,11.7%] 
+
+seems good, high s,c. but notice
+``` 
+no ball → eat
+s = 350/1000
+c = 350/400
+
+``` 
+not play ball → eat cereal [35%,87.5%] pretty good looking too. 
+They support mutually exclusive reactions. we need other ways of evaluating.
+
+
+## Lift and χ2
+
+### Lift 
+Lift (B,C) = c(B,C) / S(c)  = sup(B U C) / (sup(B) * sup(C))
+
+Lift (B,C) = 1  B and C independent
+           > 1  positively correlated
+		   < 1  negatively correlated
+
+Range of lift is [0, inf)
+
+``` 
+Lift(play,eat): 4/10  / (6/10 * 75/100)         = 0.88  < 1 negatively correlated
+
+Lift(play,not eat): 200/1000 / (6/10 * 250/1000) = 1.33  > 1 positively correlated
+``` 
+
+Solves our problem becasue we can tell one is positively correlated and one is negatively.
+
+### χ2
+
+χ2 = sum_of( (observed - expected )^2/expected )
+
+χ2 = 0 independent
+   > 0 correlated, don't know which
+   
+Range of χ2 is [0,inf)
+
+Notice the expected value (given the proportion of the row to to totals) added.
+For example the proportion of all Cs to the total is 3/4. Out of 600 Bs we would expect 3/4 to b C:
+600*3/4 = 450
+
+|         | B         | not B     | sum row |
+| C       | 400 (450) | 350 (300) |     750 |
+| not C   | 200 (150) | 50 (100)  |     250 |
+| sum col | 600       | 400       |    1000 | 
+
+
+χ2 is calculated over the full table:
+
+χ2 = (-50)^2/450 + 50^2/300 + (50^2)/150 + (-50)^2/100  = 55.6
+
+we expect them to be correlated but we see C is less than expected so it most be negatively correlated. This is consistent with Lift.
+
+### Too many Null transactions spoil Lift and χ2
+
+|         |    B |  not B | sum row |
+| C       |  100 |   1000 |    1100 |
+| not C   | 1000 | 100000 |  101000 |
+| sum col | 1100 | 101000 |  102100 |
+
+Lift (B,C) is very high 8.4 >> 1 so they should be positively correlated
+
+But this doesn't seem right given that 100 is much less than (B,not C)=100000 
+and (not B,not C) 1000000. (B,C) actually appears to be pretty infrequent, making an association based on it seems incorrect.
+
+_too much tuna!_ [not b,not c ] are the null transactions. 
+
+Note: Basically my intuition here is that whatever the real gold is, it shall be found in the 
+100000 that are neither "hidden" from this table.
+
+
+χ2 also fails. χ2 = 670 suggesting strong correlation but 
+the observed value (B):100 >> expected (B):11.85 so is it really correlated?
+
+TODO: the fail of χ2 is less obvious. Clarify
+
+## Null invariant measures
+
+Lift and χ2 greatly affected by null transactions.Not just by many null transactions but by very few . Simply not null invariant.
+
+Other measures are null invariant. They are listed in page 269 and include:
+
+ - all_conf
+ - Kulczynski (recommended along with Imbalance ratio)
+ - cosine
+ - max_conf
+ 
+They are all null invariant and in range [0,1]
+
+# Imbalance Ratio
+
+IR(A,B) = |S(A) - S(B)| / (S(A) + S(B) - S(A U B))
+
+IR range is [0,1] the higher the more imbalanced. 0 balanced
+
+Kulcynski and imbalance ratio present a clear picture
+
+# Mining diverse frequent patterns
+
+A mostly-conversational survey of variations.
+
+## Multi-levels
+
+given a patterns within a logical hierarchy e.g. 
+
+``` 
+milk: sup 10
+    skim milk: sup 6%
+	     Brank X: sup 2%
+		 ...
+    whole milk: sup 4%
+``` 
+
+You could have a *uniform* support threshold but either loose smaller patterns at the bottom with a high threshold or get too many patterns with a low one.
+
+*shared multi-level mining*: Instead we can have multiple, *reduced* levels of support and computer on one level with one threshold and with a smaller one in another.
+
+## Redundancy Filtering
+
+Two association rules may be redundant if the s is close to the expected value given the ancestor, and c is very close to each other. 
+
+``` 
+A: milk->bread(8%,70%)
+B: skim milk->bread(2%,72%)
+``` 
+Since skim milk makes up for a 1/4 of all milk sold, we can derive B from A, and just remove it.
+
+## Customized minsup for different items
+
+Infrequent but interesting items may be filtered out very quickly under a global threshold. e.g. the dude that buys a rolex in costco.
+
+One method is to have group-based "individualized" thresholds for groups of products. Algorithms don't change
+
+## Multi dimensional rules
+
+[buys product] milk  → [buys product] eggs                           -- Single dimension
+[age]          18-25 AND [occupation] student → [buys product] eggs  -- Interdimensional
+[age]          18-25 AND [buys product] pancakes → [buys product] eggs  -- Hybrid, repeated predicates
+
+Attributes can be categorical or numerical:
+ - Categorical such as profession, product have no inherent order . We can data cube directly
+ - Numerical: age, salary, etc. Discretization, clustering, gradient to create groups
+ 
+## Mining quantitative associations
+
+Age, salary as exact numbers are useless (too specific). We need groups:
+ - Statistical discretization on predefined concept hierarchies
+ - Dynamic discretization according to need 
+ - Clustering
+ - Deviation analysis (e.g. how far from the mean etc.)
+ 
+## Mining extraordinary patterns
+
+Gender = Female → Wage = mean $7 (overall mean $9!)
+
+LHS a subset of the population
+RHS an extraordinary behavior of this subset
+
+Rule accepted only if 2 test fonfirms the inferene rule
+
+## Mining negative correlations
+
+rare is low support but interesting - individualized minsup
+*negative* is different: negatively correlated, unlikely to happen together (?likely to NOT?)
+
+Buy prius →  buy hummer
+
+### Negative correlated patterns
+
+A *support-based definition* may end up sounding a lot like lift and having the same trouble with null transactions:
+
+if itemsets A and B are both freq but rarely occur together
+
+``` 
+sup( A U B ) << sup( A ) x sup( B )
+``` 
+
+then A and B are negatively correlated.
+
+In a case with lots of null transactions, say 10^6 total transactions you may find them incorrectly positively correlated:
+
+``` 
+1/10^6 > 1/10^3 * 1/10^3
+
+``` 
+
+A *null-invariant* definition based on kulzcynski is better:
+
+If itemsets A and B are both frequent but the average of their conditional probabilities is below a threshold:
+
+``` 
+((P(A|B) + P(B|A))/2 <  ε 
+``` 
+
+where ε is a negative pattern threshold then A and B are negatively correlated.
+
+``` 
+P(B|A) = P (B U A) / P(A)
+
+``` 
+
+## Mining Compressed patterns
+
+We want a balanced between closed patterns, which have too much emphasis on support and no compression and max patterns, which have lots of compression but a lot of data loss.
+
+The concept is pattern distance: 
+
+``` 
+dist(P1,P2) = 1 - | T(P1) ∩ T(P2) | / | T(P1) U T(P2) |
+
+``` 
+based on this we can do delta clustering: 
+*δ clustering*: represent several p as P if P contains them and are at distane within δ. All patterns in that cluster represented by P
+
+## Redundancy aware top-k patterns
+
+Basically you don't want just significance because you may ignore whole clusters and you don't want just relevance by cluster because you may obscure important signicance legitimately accumulated in a cluster.
+
+more detail and diagram pg 311. 
+
+## Mining collosal patterns with Pattern Fusion
+
+Methods so far only good for patterns length < 10. Because of downward closure there are too many subsets (Small number for 1-itemsets, larger for 2, etc..)
+
+Pattern Fusion (304) is a method to *jump* from a small (e.g. level-3) set of traditionally generated patterns to collosal patterns without having to explicilty visit the swamp of mid-set patterns.
+
+Pattern fusion doesn't strive for completion just to get almost complete and represented in the colossal. 
+
+The *key observation* is this: the larger the pattern the more likely to be generated from smaller patterns. A collection of smaller patterns hint at a larger pattern. Try them out.
+
+### Example
+
+Dataset D contains only 4 colossal patterns:
+
+{a1,a2,...,a50}: sup 40 
+{a3,a6,...,a99}: sup 60
+{a5,a10,...,a95}: sup 80
+{a10,a20,...,a100}: sup 100
+
+If you check pattern pool of size 3 you may find
+
+{a2,a4,a5}: ~40  {a3,a34,39}: ~40 {a5,a15,a85}: ~80 
+
+If we pick at random from size c we are more likely to get core patterns or their descendants and use them to generate candidate colossals. (this is slightly hazy but better explained in pg 304)
+
+### core patterns and robustness
+
+for a frequent pattern alpha, a subpattern beta is a *tao-core pattern* if beta shares a similar support set with a:
+
+``` 
+ | D(alpha) | / | D(beta) | >= tao  0 < tao <=1 where tao is called the core ratio, |Dx| the number of patterns containing x.
+
+``` 
+
+*robustness*: a patterns is (d,tao)-robust if d is the maximum amount of items that can be removed _from alpha_ such that the resulting pattern is still tao-core of alpha
+
+for a (d,tao) robust pattern of alpha, it has ("in the order of") omega(2^d) core patterns.
+
+Robustness of colossal patterns: a colossal patterns tends to have much more core patterns than small patterns.
+
+Patterns can be clustered together to form "dense balls" based on distance.
+
+### Pattern-fusion Algorithm itself
+
+ - traditional up to small size e.g.3
+ - at each iteration pick K seed patterns randomly picked from pattern pool
+ - for each in K find all the patterns within a bounding ball centered at the seed pattern
+ - fuse the patterns in the ball to generate candidate super patterns
+ - test super patterns, use the good ones for the next iteration
+ 
+ terminate when the current pool contains no more K patterns at the beginning of that iteration.
+ 
+ 
+
+
+
+
+
+
+
+
+

@@ -231,13 +231,13 @@ Equivalence Class Transformation, *ECLAT*,
 
 
 ```
-| Tid | Itemset |		  | Item | TidList  |
-|-----+---------|		  |------+----------|
-|  10 | a,c,d,e |  	→ →   | a    | 10,20    |
-|  20 | a,b,e   |	  	  | b    | 20,30    |
-|  30 | b,c,e   |	  	  | c    | 10,30    |
-					  	  | d    | 10       |
-					  	  | e    | 10,20,30 |
+| Tid | Itemset |         | Item | TidList  |
+|-----+---------|         |------+----------|
+|  10 | a,c,d,e |	→ →   | a    | 10,20    |
+|  20 | a,b,e   |         | b    | 20,30    |
+|  30 | b,c,e   |         | c    | 10,30    |
+                          | d    | 10       |
+                          | e    | 10,20,30 |
 
 ```
 
@@ -247,14 +247,14 @@ To derive list of of ids t of a combination, e.g. t(ae) we take the intersection
 
 t(ae) = {10,20,30} intersect {10,20} = {10,20}
 
-*key properties:* 
+*key properties:*
  - t(x) = t(y) → x and y always happen together
  - t(x) subset of t(y) →  transaction having X always has Y
- 
+
  The support for an entry is simply len(TidList)
- 
+
  You can look for frequent patterns by intersecting items:
- 
+
  | a,b |    20 |
  | a,c |    10 |
  | a,d |    10 |
@@ -266,8 +266,177 @@ Tradeoff here is Tid sets can be very long. Expensive intersects and expensive i
 
 ## FPGrowth - Pattern Growth Approach
 
-TODO: FPGrowth
+The first step same as a priori: generate a list L of 1-itemset frequent patterns and their frequency. Order it.
 
-Two relatively unexplained corollaries:
+To construct an FPTree go through the whole database a second time, creating a tree with a branch per transaction, considering each itemset in L order. for example
+
+
+```
+
+        TID             L                   FPTree
+											    {}          {}              {}
+| t1 | i1,i2,i5 |   | i2 | 4 |               i2 : 1	   	  12 : 2   	 	 i2: : 3 -
+| t2 | i2,i4    |   | i1 | 2 |               /            /   \         /     \    ---\
+| t3 | i2,i3    |   | i4 | 2 |			   i1: 1   	   	i1: 1 i4: 1    i1: 1  i4: 1  i3: 1
+| t4 | i1,i2,i4 |   | i5 | 1 |             /            /             /
+										 i5: 1	   	   i5: 1   	   	 i5 : 1
+
+   	   	   	   							  after processing t1 , t2, t3 respectively
+```
+
+once the tree is constructed mining is reduced to creating "conditional databases", by considering each member of L a suffix and recording the branches as candidates in the conditional database.
+This is done starting in reverse L order. for example for i5 (with more items, see page 258) we end up with two paths
+
+{i2,i1,i3}:1
+{i2,i1}:1
+
+and then we construct another FPTree based on this (where i2 and i1 would end up with count two and i3 of 1. That single path is one of the stop cases of the recursion (The other emptiness) and generates all combinations of frequent patterns with i5.
+
+Two relatively unexplained corollaries in the slides made a bit clearer by pg 258:
  - In a single path prefix situation the mining can be decomposed into prefix mining and branches, afterwards concatenating the results.
  - In case of data too big for memory, Partition can be done either by projection or partition (not detai (not really detailed in course, pg. 259)
+
+NOTE: questions about FPtrees usually require deriving the x-conditional database (conditional pattern bases) given a tree:
+
+```
+FPTree
+{}															 Resulting conditional pattern bases
+ - f:4														 c f:3
+   - c:3													 a fc:3
+     - a:3													 b f:1, c:1
+	   - b:1												 p cb:1 fcam:2
+	      -m:1												 m fca:2, fcab:1
+	 - m:2
+	   - p:2
+     - b:1
+	   - m:1
+  - c:1
+     - b:1
+	   - p:1
+```
+
+## Mining closed datasets with CLOSET+
+
+Just a mention to efficient mining of closed datasets by using clever observations, implemented in a system called closet+. An example is if closed pattern Y appears every time X appears, Y can be merged into X.  Others not detailed.
+
+--- Week 2
+# Pattern Evaluation
+
+Evaluation can be subjective too: query based, against specific knowledge base (e.g. looking for freshness or unexpected), or interactive visual explorations.
+
+Limitations of Support/confidence
+
+|                | play ball | not play ball | sum row |
+| eat cereal     |       400 |           350 |     750 |
+| not eat cereal |       200 |            50 |     250 |
+| sum col        |       600 |           400 |    1000 |
+
+
+``` 
+ball → eat
+s = sup(X U Y) = 400/1000
+c = sup(X U Y) / sup (X) = 400/600 
+``` 
+
+play ball → eat cereal [40%,11.7%] 
+
+seems good, high s,c. but notice
+``` 
+no ball → eat
+s = 350/1000
+c = 350/400
+
+``` 
+not play ball → eat cereal [35%,87.5%] pretty good looking too. 
+They support mutually exclusive reactions. we need other ways of evaluating.
+
+
+## Lift and χ2
+
+### Lift 
+Lift (B,C) = c(B,C) / S(c)  = sup(B U C) / (sup(B) * sup(C))
+
+Lift (B,C) = 1  B and C independent
+           > 1  positively correlated
+		   < 1  negatively correlated
+
+Range of lift is [0, inf)
+
+``` 
+Lift(play,eat): 4/10  / (6/10 * 75/100)         = 0.88  < 1 negatively correlated
+
+Lift(play,not eat): 200/1000 / (6/10 * 250/1000) = 1.33  > 1 positively correlated
+``` 
+
+Solves our problem becasue we can tell one is positively correlated and one is negatively.
+
+### χ2
+
+χ2 = sum_of( (observed - expected )^2/expected )
+
+χ2 = 0 independent
+   > 0 correlated, don't know which
+   
+Range of χ2 is [0,inf)
+
+Notice the expected value (given the proportion of the row to to totals) added.
+For example the proportion of all Cs to the total is 3/4. Out of 600 Bs we would expect 3/4 to b C:
+600*3/4 = 450
+
+|         | B         | not B     | sum row |
+| C       | 400 (450) | 350 (300) |     750 |
+| not C   | 200 (150) | 50 (100)  |     250 |
+| sum col | 600       | 400       |    1000 | 
+
+
+χ2 is calculated over the full table:
+
+χ2 = (-50)^2/450 + 50^2/300 + (50^2)/150 + (-50)^2/100  = 55.6
+
+we expect them to be correlated but we see C is less than expected so it most be negatively correlated. This is consistent with Lift.
+
+### Too many Null transactions spoil Lift and χ2
+
+|         |    B |  not B | sum row |
+| C       |  100 |   1000 |    1100 |
+| not C   | 1000 | 100000 |  101000 |
+| sum col | 1100 | 101000 |  102100 |
+
+Lift (B,C) is very high 8.4 >> 1 so they should be positively correlated
+
+But this doesn't seem right given that 100 is much less than (B,not C)=100000 
+and (not B,not C) 1000000. (B,C) actually appears to be pretty infrequent, making an association based on it seems incorrect.
+
+_too much tuna!_ [not b,not c ] are the null transactions. 
+
+Note: Basically my intuition here is that whatever the real gold is, it shall be found in the 
+100000 that are neither "hidden" from this table.
+
+
+χ2 also fails. χ2 = 670 suggesting strong correlation but 
+the observed value (B):100 >> expected (B):11.85 so is it really correlated?
+
+TODO: the fail of χ2 is less obvious. Clarify
+
+## Null invariant measures
+
+Lift and χ2 greatly affected by null transactions.Not just by many null transactions but by very few . Simply not null invariant.
+
+Other measures are null invariant. They are listed in page 269 and include:
+
+ - all_conf
+ - Kulczynski (recommended along with Imbalance ratio)
+ - cosine
+ - max_conf
+ 
+They are all null invariant and in range [0,1]
+
+# Imbalance Ratio
+
+IR(A,B) = |S(A) - S(B)| / (S(A) + S(B) - S(A U B))
+
+IR range is [0,1] the higher the more imbalanced. 0 balanced
+
+Kulcynski and imbalance ratio present a clear picture
+
+

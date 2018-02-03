@@ -274,14 +274,14 @@ To construct an FPTree go through the whole database a second time, creating a t
 ```
 
         TID             L                   FPTree
-											    {}          {}              {}
-| t1 | i1,i2,i5 |   | i2 | 4 |               i2 : 1	   	  i2 : 2   	 	 i2: : 3 __
+                                                {}          {}              {}
+| t1 | i1,i2,i5 |   | i2 | 4 |               i2 : 1       i2 : 2        i2: : 3 __
 | t2 | i2,i4    |   | i1 | 2 |               /            /   \         /     \    ---\
-| t3 | i2,i3    |   | i4 | 2 |			   i1: 1   	   	i1: 1 i4: 1    i1: 1  i4: 1  i3: 1
+| t3 | i2,i3    |   | i4 | 2 |               i1: 1             i1: 1 i4: 1    i1: 1  i4: 1  i3: 1
 | t4 | i1,i2,i4 |   | i5 | 1 |             /            /             /
-										 i5: 1	   	   i5: 1   	   	 i5 : 1
+                                         i5: 1       i5: 1         i5 : 1
 
-   	   	   	   							  after processing t1 , t2, t3 respectively
+                                                      after processing t1 , t2, t3 respectively
 ```
 
 once the tree is constructed mining is reduced to creating "conditional databases", by considering each member of L a suffix and recording the branches as candidates in the conditional database.
@@ -299,20 +299,20 @@ Two relatively unexplained corollaries in the slides made a bit clearer by pg 25
 NOTE: questions about FPtrees usually require deriving the x-conditional database (conditional pattern bases) given a tree:
 
 ```
-FPTree
-{}															 Resulting conditional pattern bases
- - f:4														 c f:3
-   - c:3													 a fc:3
-     - a:3													 b f:1, c:1
-	   - b:1												 p cb:1 fcam:2
-	      -m:1												 m fca:2, fcab:1
-	 - m:2
-	   - p:2
+FPTree                                                    Resulting conditional pattern bases
+{}    
+ - f:4                                                       c f:3
+   - c:3                                                     a fc:3
+     - a:3                                                   b f:1, c:1
+       - b:1                                                 p cb:1 fcam:2
+          -m:1                                               m fca:2, fcab:1
+     - m:2
+       - p:2
      - b:1
-	   - m:1
+       - m:1
   - c:1
      - b:1
-	   - p:1
+       - p:1
 ```
 
 ## Mining closed datasets with CLOSET+
@@ -768,7 +768,7 @@ Key observation: s super_of s1 if two projected dbs have same size (not very cle
 ```
        *                   *
       / \                 / \
-	a     f              a  f
+    a     f              a  f
    /      .             /   /
   f      ...           f <-'
   .     .....          .
@@ -815,12 +815,12 @@ Notice there are many ways to join two k-sized graphs that differ only by one ve
 
 ```
 
-	  D					E                D	  E             D E              E
-   	  |	   	   	   	   	|				 | 	  |              \|              |
- c----c			   c----c				 c----c			 c----c			c----c
- |    |	  		   |    |				 |    |			 |    |			|    |
- |    |	   	+  	   |    |  	   	→ →    	 |    |			 |    |			|    |
- c----c			   c----c				 c----c			 c----c			c----c
+      D                 E                D    E             D E              E
+      |                 |                |    |              \|              |
+ c----c            c----c                c----c          c----c         c----c
+ |    |            |    |                |    |          |    |         |    |
+ |    |     +      |    |       → →      |    |          |    |         |    |
+ c----c            c----c                c----c          c----c         c----c
                                                                         |
                                                                         D
 
@@ -846,21 +846,21 @@ The right-most path extension works like this:
 Given a spanning tree (a tree subgraph of the graph that uses the minimum number of edges) that gives each node an index, you can generate a sequence, starting at node 0, such that you every time you follow the smallest index node available:
 
 
-``` 			  -----
-			   ..(  0  ).....                            e0: (0,1)
-			  ..  --+--		.. 							 e1: (1,2)
-			...	    |		 ..	 						 e2: (2,0)
-			..	  -----		  .. 						 e3: (2,3)
-		   ..	 (  1  )	   . 						 e4: (3,0)
-   		   ..	  --+--		  .. 						 e5: (2,4)
-   		  ..	    |		  ..
-		  ..	  -----		 ..
-		  ...	 (  2  ) \...
-    	   ..	  --+--	  \
-			..	    |	   \-
-			...	  -----		 \  -----
-			  ...(  3  )	  \(  4  )
-				  --+--		    --+--
+```               -----
+               ..(  0  ).....                            e0: (0,1)
+              ..  --+--     ..                           e1: (1,2)
+            ...     |        ..                          e2: (2,0)
+            ..    -----       ..                         e3: (2,3)
+           ..    (  1  )       .                         e4: (3,0)
+           ..     --+--       ..                         e5: (2,4)
+          ..        |         ..
+          ..      -----      ..
+          ...    (  2  ) \...
+           ..     --+--   \
+            ..      |      \-
+            ...   -----      \  -----
+              ...(  3  )      \(  4  )
+                  --+--         --+--
 ``` 
 The paper proves (not seen) that the enumeration of graphs using right-most path extension is complete.
 

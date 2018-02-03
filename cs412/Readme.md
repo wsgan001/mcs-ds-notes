@@ -233,7 +233,7 @@ Equivalence Class Transformation, *ECLAT*,
 ```
 | Tid | Itemset |         | Item | TidList  |
 |-----+---------|         |------+----------|
-|  10 | a,c,d,e |	→ →   | a    | 10,20    |
+|  10 | a,c,d,e |   → →   | a    | 10,20    |
 |  20 | a,b,e   |         | b    | 20,30    |
 |  30 | b,c,e   |         | c    | 10,30    |
                           | d    | 10       |

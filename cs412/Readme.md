@@ -732,7 +732,8 @@ for "b":
 we can combine by looking at order, using the indexes:
 
 for "ab"
-| SID | EID a  less than... | EID b |
+
+| SID | EID a  less than    | EID b |
 |-----|---------------------|-------|
 |   1 |                   1 |     2 |
 |   2 |                   1 |     3 |

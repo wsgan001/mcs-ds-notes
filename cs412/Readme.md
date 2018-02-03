@@ -676,14 +676,14 @@ Sequential in vertical format.
  - Combine by looking at order (smaller indexes)
 
 | SID | Sequence          |
-|-----+-------------------|
+|-----|-------------------|
 |   1 | <a(abc)(ac)d(cf)> |
 |   2 | <(ad)c(bc)(ae)>   |
 |   3 | <(ef)(ab)(df)cb>  |
 |   4 | <eg(af)cbc>       |
 
 | SID | EID | Items |
-|-------------------|
+|-----|-----|-------|
 |   1 |   1 | a     |
 |   1 |   2 | abc   |
 |   1 |   3 | ac    |
@@ -710,6 +710,7 @@ from there we can do the tables for each singleton:
 For "a":
 
 | SID | EID |
+|-----|-----|
 |   1 |   1 |
 |   1 |   2 |
 |   1 |   3 |
@@ -721,6 +722,7 @@ For "a":
 for "b":
 
 | SID | EID |
+|-----|-----|
 |   1 |   2 |
 |   2 |   3 |
 |   3 |   2 |
@@ -731,6 +733,7 @@ we can combine by looking at order, using the indexes:
 
 for "ab"
 | SID | EID a  less than... | EID b |
+|-----|---------------------|-------|
 |   1 |                   1 |     2 |
 |   2 |                   1 |     3 |
 |   3 |                   2 |     5 |
@@ -745,6 +748,7 @@ By pattern growth. Introduce prefix and suffix
 given <a(abc)(ac)d(cf)> you can say
 
 | Prefix | Suffix           |
+|--------|------------------|
 | <a>    | <(abc)(ac)d(cf)> |
 
 also you can say

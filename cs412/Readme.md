@@ -980,7 +980,7 @@ and we contrast it against graphs in the database. Similarity is defined by dist
 The main point is that if graph G contains the major part of query graph q, G should share a number of common features with q. 
 
 |    | g1 | g2 | g3 | g4 | g5 |
-|-----------------------------|
+|----|----|----|----|----|----|
 | f1 |  0 |  1 |  0 |  1 |  1 |
 | f2 |  0 |  1 |  0 |  0 |  1 |
 | f3 |  1 |  0 |  1 |  1 |  1 |

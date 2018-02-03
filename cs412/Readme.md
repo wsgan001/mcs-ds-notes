@@ -750,7 +750,7 @@ given <a(abc)(ac)d(cf)> you can say
 
 | Prefix | Suffix           |
 |--------|------------------|
-| <a>    | <(abc)(ac)d(cf)> |
+| ```<a>```    | <(abc)(ac)d(cf)> |
 
 also you can say
 prefix <aa> suffix <(_bc)(ac)d(cf)> but that is less clear.

@@ -627,7 +627,7 @@ Lots of applications: genome sequences, click streams, copy/paste in sw bugs etc
 Find the complete set of frequent subsequences
 
 | SID | Sequence          |
-|-------------------------|
+|-----|-------------------|
 |  10 | <a(abc)(ac)d(cf)> |
 |  20 | <(ad)c(bc)(ae)>   |
 |  30 | <(ef)(ab)(df)cb>  |

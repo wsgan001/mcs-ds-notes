@@ -791,16 +791,15 @@ sup G = | DGi| / | DG| where DGi is subset of DG such that Gi contains g
 
 ## Breakdown of algorithms
 
-  - By generation of candidate subgraphs
-   - apriori vs pattern growth
-  - By search order
-   - breadth vs depth
-  - By how they eliminate duplicate subgraphs
-   - passive vs active
-  - By support calculation
-  - Order of pattern discovery
+ - By generation of candidate subgraphs
+  - apriori vs pattern growth
+ - By search order
+  - breadth vs depth
+ - By how they eliminate duplicate subgraphs
+  - passive vs active
+ - By support calculation
+ - Order of pattern discovery
    - path → tree → graph
-
 ## Apriori method for graph mining
 
 Key observation: antimonotonicity: g size K is frequent iff all subgraphs are frequent
@@ -850,8 +849,8 @@ The right-most path extension works like this:
 
 Given a spanning tree (a tree subgraph of the graph that uses the minimum number of edges) that gives each node an index, you can generate a sequence, starting at node 0, such that you every time you follow the smallest index node available:
 
-
-```               -----
+```
+                  -----
                ..(  0  ).....                            e0: (0,1)
               ..  --+--     ..                           e1: (1,2)
             ...     |        ..                          e2: (2,0)

@@ -753,11 +753,11 @@ given <a(abc)(ac)d(cf)> you can say
 | ```<a>```    | <(abc)(ac)d(cf)> |
 
 also you can say
-prefix <aa> suffix <(_bc)(ac)d(cf)> but that is less clear.
+prefix ```<aa>``` suffix ```<(_bc)(ac)d(cf)>``` but that is less clear.
 
-For the algorithm itself start with singletons (<a>, <b>, etc). This will generate a table of suffixes for each.
+For the algorithm itself start with singletons (```<a>, <b>,``` etc). This will generate a table of suffixes for each.
 
-Look at the length-k+1 sequential patterns <aa> <ab> and advance by divide and conquer: if they are frequent on the projected DB, continue.
+Look at the length-k+1 sequential patterns ```<aa> <ab>``` and advance by divide and conquer: if they are frequent on the projected DB, continue.
 
 Main advantage is there are no candidates generated and db keeps shrinking. also pointer implementation tricks help representation keep compact in memory
 

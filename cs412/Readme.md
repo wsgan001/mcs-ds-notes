@@ -300,7 +300,7 @@ NOTE: questions about FPtrees usually require deriving the x-conditional databas
 
 ```
 FPTree                                                    Resulting conditional pattern bases
-{}    
+{}
  - f:4                                                       c f:3
    - c:3                                                     a fc:3
      - a:3                                                   b f:1, c:1
@@ -865,7 +865,7 @@ Given a spanning tree (a tree subgraph of the graph that uses the minimum number
             ...   -----      \  -----
               ...(  3  )      \(  4  )
                   --+--         --+--
-``` 
+```
 The paper proves (not seen) that the enumeration of graphs using right-most path extension is complete.
 
 The slides also mention that given a DFS code you can mine the graph essentially as you would a set of sequences (somewhat intuitive but completely unexplored)
@@ -884,29 +884,110 @@ Also again, lossless compression.
 
 the *key question* is, at what point of in the process of going from k-edge to k+1 edge do we want to stop searching the children and early-terminate?
 
-``` 
+```
 
 k         k+1
 
-      →    g1  ✔ 
+      →    g1  ✔
 g     →    g2 no
       →    g3 no
 
-``` 
+```
 The idea is if g and g1 are frequent and g is a subgraph of g1 (gspan) AND if in any part of the graph where g occurs g1 also occurs, then we don't need to grow g in any other way.
 
 Apparently some edge cases not detailed are possible.
 
 ### Applications and performance
 
-The quality of the results is lossless as compared with mere frequent patterns but orders of magnitude smaller, making the results more valuable.
-
-Also, it is way faster, orders of magnitude faster. 
-
-For large sets, mining closed patterns is key.
+The quality of the results is lossless as compared with mere frequent patterns but orders of magnitude smaller, making the results more valuable. Also, it is way faster, orders of magnitude faster. For large sets, mining closed patterns is key.
 
 ## SpiderMine: mining top-K large structural patterns in a massive network
 
+Similar to pattern fusion, if you are going for efficiency on representative majority rather than completeness, you can exploit properties of "proximity" (my term) and the probability of "hitting" a relevant substructure.
+
+SpiderMine aims at finding with a propability of 1-epsilon (small epsilon) the top-K largest frequent substructure patterns whose diameter is bounded by a diameter Dmax.
+
+General idea: large patterns are composed of a number of small components (spiders) which will gloom together after some rounds of pattern growth.
+
+An r-spider is a frequent graph pattern P such that there exists a vertex u of P, and all other vertices of P are within distance r from u.
+
+```
+     \ /
+    - u -
+     / \
+```
+
+### Algorithm
+very similar to pattern fusion
+ - mine set of r-spiders of certain size (3,5)
+ - randomly draw M of those
+ - grow those M for t = Dmax/2 iterations, and merge two patterns whenever possible
+ - discard unmerged patterns
+ - continue to grow the remaining ones to maximum size
+ - return the top-K largest ones in the result
+
+SpiderMine is likely to retain large patterns because small patterns are less likely to be hit at random (especially repeatedly) and conversely the larger the patter the greater the chance it is hit and saved.
+
+Application discussion of 600 conferences , 9 areas, 15K authors finding interesting patterns.
+
+## Application I: Graph indexing
+Of course one usage to find interesting substructures to study (e.g. specific chem compounds)
+
+Graph query can be greatly improved by having an index. Of course you'd like to index by popular subgraphs.
+
+imagine a query graph Q, an index substructure, and a graph, the search of matches can be greatly improved by returning only the places where the index occurs.
+
+```
+      x                                                   x
+       \                                                x  \
+        o                      o                        |   o----o---o-x
+        |                      |                        x   |
+        o                      o                          - o
+       / \                    / \                          / \
+      o   o                  o   o                        o   o
+
+```
+
+Indexing on mere paths sounds tempting but actually doesn't work too well (take his word). Indexing actual subgraphs better.
+
+Of course index only frequent substructures.
+You need to vary the support threshold because larger substructures that are useful may need more relaxed threshold. Conversely if you use a relaxed threshold on small sizes you may end up with too much tuna.
+
+```                                     
+                                         .
+                .                      ..
+                .                  ....
+                .             ......           min-support threshold
+                .        ......
+                .........
+                ............................
+
+```
+As to whether a new structure should be considered an indexing structure (it is "discriminative"), we test it against the probability of existing features to find it or cover it (like a worker with an exceptional skill or more of the same).
+
+## Application II: Graph similarity search
+
+e.g. maybe not identical compounds but similar.
+
+If no index you have to do sequential scan + computing subgraph similarity. Expensive!
+Build graph indexes to support approx search? maybe too many entries to cover it all. Expensive!
+
+*key idea* break query graph q into "features" or substructures that may likely match subgraphs in database
+
+Now what we want is a similarity measure. Each graph is represented as feature vector. X = {x1,x2,...,xn}
+and we contrast it against graphs in the database. Similarity is defined by distance of corresponding vectors.
+
+The main point is that if graph G contains the major part of query graph q, G should share a number of common features with q. 
+
+|    | g1 | g2 | g3 | g4 | g5 |
+|-----------------------------|
+| f1 |  0 |  1 |  0 |  1 |  1 |
+| f2 |  0 |  1 |  0 |  0 |  1 |
+| f3 |  1 |  0 |  1 |  1 |  1 |
+| f4 |  1 |  0 |  0 |  0 |  1 |
+| f5 |  0 |  0 |  1 |  1 |  0 |
+
+suppose the query graph has 5 features, *relaxation threshold* is it can miss at most 2 features then G1, G2, G3 can be pruned. 
 
 
 

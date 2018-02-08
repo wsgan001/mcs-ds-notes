@@ -953,7 +953,7 @@ Indexing on mere paths sounds tempting but actually doesn't work too well (take 
 Of course index only frequent substructures.
 You need to vary the support threshold because larger substructures that are useful may need more relaxed threshold. Conversely if you use a relaxed threshold on small sizes you may end up with too much tuna.
 
-```                                     
+```
                                          .
                 .                      ..
                 .                  ....
@@ -977,7 +977,7 @@ Build graph indexes to support approx search? maybe too many entries to cover it
 Now what we want is a similarity measure. Each graph is represented as feature vector. X = {x1,x2,...,xn}
 and we contrast it against graphs in the database. Similarity is defined by distance of corresponding vectors.
 
-The main point is that if graph G contains the major part of query graph q, G should share a number of common features with q. 
+The main point is that if graph G contains the major part of query graph q, G should share a number of common features with q.
 
 |    | g1 | g2 | g3 | g4 | g5 |
 |----|----|----|----|----|----|
@@ -987,10 +987,199 @@ The main point is that if graph G contains the major part of query graph q, G sh
 | f4 |  1 |  0 |  0 |  0 |  1 |
 | f5 |  0 |  0 |  1 |  1 |  0 |
 
-suppose the query graph has 5 features, *relaxation threshold* is it can miss at most 2 features then G1, G2, G3 can be pruned. 
+suppose the query graph has 5 features, *relaxation threshold* is it can miss at most 2 features then G1, G2, G3 can be pruned.
+
+--- Week 4
+
+# Constrained Based Mining
+ Fully automated may seem attractive but produces lots of frequent patterns. Interactive query language for constraints or visual exploration necessary. Several kinds of constraints:
+
+ - Knowledge-based constraint: classification, association, clustering
+ - Data-constraint: using sql-like queries. e.g. products sold together in nyc
+ - Dimension/level: relevance to region, price, brand
+ - Rule: small price <$10
+ - Interestingness: min_sup >=0.02, min_conf >= 0.06
+
+<!--
+TODO: get this whole portion more clearly or simplify if just fluff
+ Meta-rule can contain partially instantiated predicates and constants:
+ ```
+ P1(X,Y) ^ P2(X,W) → buys(x,"ipad")
+ resulting in
+ age(X,"15-25") ^ profession(X,"student") → buys(X,"ipad")
+```
+Method to find metarules given P1^P2^Pn → Q1^Q2^Qr: ( " l → r  ")
+ - find frequent (l+r) predicated based on minsup
+ - push constants(constraints rather?) deeply when possible into main process
+ -->
+
+## Different kinds of pruning constraints
+
+Two types: Pattern or data space pruning constraints, leading to different pattern space pruning and data space pruning strategies
+
+### Pattern Constraints
+ - Anti-monotonic: if c is violated all supersets will also violate it. terminate.
+ - Monotonic: if c is satisfied all supersets will also satisfy. no need to keep checking
+ - Succint: c can be enforced by manipulating the data (particularly in ways other than ordering)
+ - Convertible: c can be made into AM or M if data is ordered
+
+### Dataspace constraints
+ - Data succint: data space can be pruned at the initial pattern mining process
+ - Data anti-monotonic: if t doesn't satisfy c, t can be pruned to reduce data processing effort
+
+TODO: data antimonotonic only for ands?
+
+## Pattern anti-monotonicity
+
+If itemset S *violates* constraint C, supersets will too, therefore mining can be terminated
+
+sum(S.price) <= v anti-monotone
+range(S.profit) <= x anti-monotone (keep adding things range can only expand)
+sum(S.price) >= v NOT antimonotone (price can grow past thresold as we add items)
+support(s) >= sigma a very familiar antimonotone: apriori!
+
+## Pattern monitonicity
+
+If itemset S *satisfies* constraint C, all supersets will to, so no need to check C in subsequent mining.
+
+sum(S.price) >= v     monotone
+min(S.price) <= v     monotone
+range(S.profit) >= v  monotone (keep adding things range can only expand)
+
+## Data Anti-monotonicity
+
+If data entry T canot satisfy pattern P under constraint C T cannot satisfy P's superset either. Data entry T can be pruned.
+
+```
+| TID | items  |  with		| Item | Profit |
+|--------------|			|---------------|
+|  10 | abcdfh |			| a    |     40 |
+|  20 | bcdfgh |			| b    |    -20 |
+|  30 | bcdfg  |			| c    |    -15 |
+|  40 | acefg  |			| d    |    -30 |
+							| e    |    -10 |
+							| f    |    -20 |
+							| g    |      5 |
+
+```
+no combination of TID 30, bcdfg, will ever be sum(s.profit) >= 25 so prune it.
+
+min(S.price) <= v is data anti-monotone
+
+for example if there was a TID 50 has a price higher than 10 take it out. No point in dealing with subsets of it.
+
+range(S.profit) > 25 is data monotonic but need to recurse
+
+in original TDB above many satisfy minsup 2 range(s.profit) > 0 but in the middle of recursion, when mining projected db of b we will have
+
+``` 
+10 acdfh  X because minsup 1 for a and resulting set no longer holds range>=25
+20 cdfgh  X because minsup h also 1 resulting set non compliant
+30 cdfg
+``` 
+that is what they mean by recursive data pruning. You have keep applying the constraint as you go deeper in the mining.
+
+## Succint constraints
+
+Succint constraints can be enforced by directly manipulating the data (presumabily in ways others than simply ordering it and different from data antimonotonicity)
+
+some succint constraints:
+
+- patterns without item i (pattern space pruning) - remove i from db and then mine
+- patterns containing item i (data space prunning) - mine only i-projected db
+- min(S.price) <= is succint (both data and pattern prunning) 
+  - start with only items <= v (pattern?)
+  - remove transactions with high price items only (data?)
+
+sum(S.price) > 20 is not because you cannot determine beforehand sum of price, it just keeps increasing. (Most you can say about this is monotonic !?)
+
+## Convertible Constraints
+
+hard ones that can be made AM or M by ordering items in transactions
+
+avg(S.profit) > 20 very low or very high may invalidate later. Unless... they are ordered!
+
+if you can sort items in value descending order avg(S.profit) > 20 becomes anti-monottonic. You could also make it monotonic but better to prune the space.
+
+``` 
+<a,g,f,b,h,d,c,e> items in previous TBD ordered descendingly by profit
+
+``` 
+ab violates c: avg(ab)=20 then no item in projection db ab* will satisfy either as long as patterns grow in right order.
+
+Notice no reordering help for apriori: avg(agf) =23.3 > 20 but avg(gf) = 15 < 20
+
+A good example of convertible anti-monotonic is median(S.price) >= 10
+
+``` 
+median = (x[floor((n+1)/2)] + x[ceiling((n+1)/2)])/2
+``` 
+As ordered items are added the median can only keep growing.
+
+## Multiple convertible constraints
+
+They might require different orderings. 
+
+ - If there are orders that covers both constraints, sort in order that prunes the most
+ - If there is a conflict enforce the most pruning first then enforce the other one *within* the projected dbs
+ 
+``` 
+c1: avg(S.Profit) > 20  c2: avg(S.Price) <50
+``` 
+soft in profit descending and use c1 first because finding extraordinary profits is more pruning than finding cheap items.
+
+then on each db sort transaction in price order and use c2
+
+## Constraint based sequential pattern mining
+
+Many similarities including 
+
+## anti-monotonicity
+
+all super sequences of S will also violate.
+
+sum(S.price) < 150 min(s.value)>10
+
+Monotonic
+
+element_count(5) or S contains {PC,camera}
+
+### Data antimonotonic
+if a sequence s1 wrt S violates c3 s1 can be removed
+
+c3: sum(s.price) >= v
+
+TODO: clarify data antimonotonic in sequences after coding pa 2
+
+### Succint constraints
+
+S contains {iphone,mcair}
+
+### Convertible
+
+tricky since order can be changed for the sake of projection but not in the data (sequence). Need to modify seq span to deal with it.
+
+## Time based constraints
+
+order constraints such a {algebra,trigo} → {calculus} or min_gap, max_gap
+Succint: enforced directly during pattern growth
+max span succing enforce on first round
+window size :events in element need just to be within window size
+
+details of this are not really explained in video or apparently within real scope of evaluation/course. Just mentioned for completion in survey.
+
+## Episodes
+either serial A → B , parallel A | B or regexps (A|B)C*(D → E)
+modified versions of apriori and projection but details of this are not really explained in video or apparently within real scope of evaluation/course. Just mentioned for completion in survey. Invitation to the reader to figure out diffs.
 
 
 
+
+
+
+
+TODO: really clear up data anti-monotonic constraints
 TODO: - GSP production of candidates
 TODO: - Generation of projections with placeholders _. Exactly how to interpret
 TODO: review for a single branch FPTree how the final patterns are generated, is this the only stop condition for the recursion?
+TODO: review that this assertion is obvious to you:  "in clospan if s is a superpattern of s' and their projected databases have the same size, then the subpattern s' can be pruned."

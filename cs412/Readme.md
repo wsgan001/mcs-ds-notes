@@ -1051,15 +1051,15 @@ range(S.profit) >= v  monotone (keep adding things range can only expand)
 If data entry T canot satisfy pattern P under constraint C T cannot satisfy P's superset either. Data entry T can be pruned.
 
 ```
-| TID | items  |  with		| Item | Profit |
-|--------------|			|---------------|
-|  10 | abcdfh |			| a    |     40 |
-|  20 | bcdfgh |			| b    |    -20 |
-|  30 | bcdfg  |			| c    |    -15 |
-|  40 | acefg  |			| d    |    -30 |
-							| e    |    -10 |
-							| f    |    -20 |
-							| g    |      5 |
+| TID | items  |  with      | Item | Profit |
+|--------------|            |---------------|
+|  10 | abcdfh |            | a    |     40 |
+|  20 | bcdfgh |            | b    |    -20 |
+|  30 | bcdfg  |            | c    |    -15 |
+|  40 | acefg  |            | d    |    -30 |
+                            | e    |    -10 |
+                            | f    |    -20 |
+                            | g    |      5 |
 
 ```
 no combination of TID 30, bcdfg, will ever be sum(s.profit) >= 25 so prune it.

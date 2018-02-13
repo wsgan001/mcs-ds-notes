@@ -1,8 +1,5 @@
 # Introduction to Data Mining - Spring 2018
-January 16, 2018 (07:45:06)
-Jia Wei Han
-piazza: https://piazza.com/class/jc9q3te0qoskz
-course staff: cs-412ds-staff@lists.cs.illinois.edu
+Fabio Arciniegas Started January 16, 2018 (07:45:06) 
 
 --- Week 1
 # Pattern Discovery: Basic Concepts
@@ -15,6 +12,7 @@ course staff: cs-412ds-staff@lists.cs.illinois.edu
 
 ## Frequent Patterns
 
+```
 | id | transactions |
 |----|--------------|
 | 10 | B,D,N        |
@@ -22,7 +20,7 @@ course staff: cs-412ds-staff@lists.cs.illinois.edu
 | 30 | B,D,E        |
 | 40 | N,E,M        |
 | 50 | N,C,E,M      |
-
+```
 *support*: number of occurrences
 
 *relative support*: support / len(transactions)
@@ -86,6 +84,8 @@ Transactional DataBase TDB1 with T1={a_1...a_50} T2={a_1...a_100}
 ...
 total subpatterns: 100_choose_1 + ... + 100_choose_100 = too much!
 ```
+
+*important property*: sum of 100_choose_n with n from 1 to 100 = 2^100 -1
 
 ### Closed Patterns
 
@@ -674,74 +674,34 @@ Sequential in vertical format.
 
  - Convert from seq db to vertical format
  - Combine by looking at order (smaller indexes)
-
-| SID | Sequence          |
-|-----|-------------------|
-|   1 | <a(abc)(ac)d(cf)> |
-|   2 | <(ad)c(bc)(ae)>   |
-|   3 | <(ef)(ab)(df)cb>  |
-|   4 | <eg(af)cbc>       |
-
-| SID | EID | Items |
-|-----|-----|-------|
-|   1 |   1 | a     |
-|   1 |   2 | abc   |
-|   1 |   3 | ac    |
-|   1 |   4 | d     |
-|   1 |   5 | cf    |
-|   2 |   1 | ad    |
-|   2 |   2 | c     |
-|   2 |   3 | bc    |
-|   2 |   4 | ae    |
-|   3 |   1 | ef    |
-|   3 |   2 | ab    |
-|   3 |   3 | df    |
-|   3 |   4 | c     |
-|   3 |   5 | b     |
-|   4 |   1 | e     |
-|   4 |   2 | g     |
-|   4 |   3 | af    |
-|   4 |   4 | c     |
-|   4 |   5 | b     |
-|   4 |   6 | c     |
+``` 
+| SID | Sequence          |     | SID | EID | Items |       |   2 |   4 | ae    |
+|-----|-------------------|     |-----|-----|-------|       |   3 |   1 | ef    |
+|   1 | <a(abc)(ac)d(cf)> |     |   1 |   1 | a     |       |   3 |   2 | ab    |
+|   2 | <(ad)c(bc)(ae)>   |     |   1 |   2 | abc   |       |   3 |   3 | df    |
+|   3 | <(ef)(ab)(df)cb>  |     |   1 |   3 | ac    |       |   3 |   4 | c     |
+|   4 | <eg(af)cbc>       |     |   1 |   4 | d     |       |   3 |   5 | b     |
+                                |   1 |   5 | cf    |       |   4 |   1 | e     |
+                                |   2 |   1 | ad    |       |   4 |   2 | g     |
+                                |   2 |   2 | c     |       |   4 |   3 | af    |
+                                |   2 |   3 | bc    |       |   4 |   4 | c     |
+                                                            |   4 |   5 | b     |
+                                      .... continued:       |   4 |   6 | c     |
 
 from there we can do the tables for each singleton:
 
-For "a":
+For "a":                 for "b":         we can combine by looking at order, using the indexes:
 
-| SID | EID |
-|-----|-----|
-|   1 |   1 |
-|   1 |   2 |
-|   1 |   3 |
-|   2 |   1 |
-|   2 |   4 |
-|   3 |   2 |
+| SID | EID |            | SID | EID |    for "ab"
+|-----|-----|            |-----|-----|
+|   1 |   1 |            |   1 |   2 |    | SID | EID a  less than    | EID b |
+|   1 |   2 |            |   2 |   3 |    |-----|---------------------|-------|
+|   1 |   3 |            |   3 |   2 |    |   1 |                   1 |     2 |
+|   2 |   1 |            |   3 |   5 |    |   2 |                   1 |     3 |
+|   2 |   4 |            |   4 |   5 |    |   3 |                   2 |     5 |
+|   3 |   2 |                             |   4 |                   3 |     5 |
 |   4 |   3 |
-
-for "b":
-
-| SID | EID |
-|-----|-----|
-|   1 |   2 |
-|   2 |   3 |
-|   3 |   2 |
-|   3 |   5 |
-|   4 |   5 |
-
-we can combine by looking at order, using the indexes:
-
-for "ab"
-
-| SID | EID a  less than    | EID b |
-|-----|---------------------|-------|
-|   1 |                   1 |     2 |
-|   2 |                   1 |     3 |
-|   3 |                   2 |     5 |
-|   4 |                   3 |     5 |
-
-
-and so on...
+``` 
 
 ## Prefix Span
 
@@ -1013,6 +973,10 @@ Method to find metarules given P1^P2^Pn → Q1^Q2^Qr: ( " l → r  ")
  - push constants(constraints rather?) deeply when possible into main process
  -->
 
+- data space pruning example: find those patterns containing "i": we can mine only i-projected database. we pruned the rest of the data.
+
+- pattern space pruning example: find those patterns NOT containing "i": remove i from db and mine, so we no longer have to test for that pattern. 
+
 ## Different kinds of pruning constraints
 
 Two types: Pattern or data space pruning constraints, leading to different pattern space pruning and data space pruning strategies
@@ -1072,11 +1036,11 @@ range(S.profit) > 25 is data monotonic but need to recurse
 
 in original TDB above many satisfy minsup 2 range(s.profit) > 0 but in the middle of recursion, when mining projected db of b we will have
 
-``` 
+```
 10 acdfh  X because minsup 1 for a and resulting set no longer holds range>=25
 20 cdfgh  X because minsup h also 1 resulting set non compliant
 30 cdfg
-``` 
+```
 that is what they mean by recursive data pruning. You have keep applying the constraint as you go deeper in the mining.
 
 ## Succint constraints
@@ -1087,7 +1051,7 @@ some succint constraints:
 
 - patterns without item i (pattern space pruning) - remove i from db and then mine
 - patterns containing item i (data space prunning) - mine only i-projected db
-- min(S.price) <= is succint (both data and pattern prunning) 
+- min(S.price) <= is succint (both data and pattern prunning)
   - start with only items <= v (pattern?)
   - remove transactions with high price items only (data?)
 
@@ -1101,38 +1065,38 @@ avg(S.profit) > 20 very low or very high may invalidate later. Unless... they ar
 
 if you can sort items in value descending order avg(S.profit) > 20 becomes anti-monottonic. You could also make it monotonic but better to prune the space.
 
-``` 
+```
 <a,g,f,b,h,d,c,e> items in previous TBD ordered descendingly by profit
 
-``` 
+```
 ab violates c: avg(ab)=20 then no item in projection db ab* will satisfy either as long as patterns grow in right order.
 
 Notice no reordering help for apriori: avg(agf) =23.3 > 20 but avg(gf) = 15 < 20
 
 A good example of convertible anti-monotonic is median(S.price) >= 10
 
-``` 
+```
 median = (x[floor((n+1)/2)] + x[ceiling((n+1)/2)])/2
-``` 
+```
 As ordered items are added the median can only keep growing.
 
 ## Multiple convertible constraints
 
-They might require different orderings. 
+They might require different orderings.
 
  - If there are orders that covers both constraints, sort in order that prunes the most
  - If there is a conflict enforce the most pruning first then enforce the other one *within* the projected dbs
- 
-``` 
+
+```
 c1: avg(S.Profit) > 20  c2: avg(S.Price) <50
-``` 
+```
 soft in profit descending and use c1 first because finding extraordinary profits is more pruning than finding cheap items.
 
 then on each db sort transaction in price order and use c2
 
 ## Constraint based sequential pattern mining
 
-Many similarities including 
+Many similarities including
 
 ## anti-monotonicity
 
@@ -1186,9 +1150,9 @@ Methodologies are frequent pattern and collocation analysis, phrasal segmentatio
 ## Previous work
 
 "chunking" from the NLP community model a phrase as a sequence labeling problem. It needed a lot of annotation from humans.
-``` 
+```
 (B-NP, INP, O-PH ...etc) human annotate before phrase, after, in etc.
-``` 
+```
 work w supervised model. Accuracy is high but doesn't scale to other langs.
 
 ## Unsupervised phrase mining and topic modelling
@@ -1198,17 +1162,17 @@ they are closely linked . Represent doc by multiple topics in different proporti
 *Statistical topic modelling algorithms*, the most common is *LDA* (Latent Dirichlet Allocation)
 
 ### Strategies on Phrase mining and Topic Modelling
- 
+
  - Generate bag-of-words simultaneously with sequence of tokens
  - Post bag-of-words model inferenece, visualize topics in n-grams (first topic, then phrase mining).
  - Before BoW mine phrases (first phrase minig, then topic modeling LDA)
- 
+
 ### Simultaneous Phrase and topic inferrement (all ~ previous work)
  - Bigram topic model: try w probabilistic model given previous words
  - Topical n-grams: same extended to more n grams not just previous one
  - Phrase discovery LDA; view each sentence as a time series (overfitting)
- 
-### First topic modeling, then phrase construction 
+
+### First topic modeling, then phrase construction
  - *TurboTopics*: phrase construction as post-processing step to LDA
    - perform LDA → assing each token a topic label
    - merge adjecent ngrams w same topic level ~ roughly
@@ -1217,20 +1181,20 @@ they are closely linked . Represent doc by multiple topics in different proporti
    - Run bag of words model and assign topic label
    - Perform *frequent pattern mining* to extract phrases within each topic
    - Perform phrase ranking based on four criterion:
-      - popularity 
+      - popularity
 	  - concordance ("strong tea")
 	  - informativeness ("this paper" → pretty bad)
 	  - completeness ("vector machine" vs "support vector machine")
    - kert btw allows comparability of phrases of mixed lengths
-   
+
 ### First phrase then topic modelling: TopMine
-No training set. 
+No training set.
 With strategy t2 two tokens in the same phrase may be assigned different topics:
 
-``` 
+```
  knowledge (1) discovery (2) using _latest squares_ (2) support (1) vector (2) machine classifiers (1)
-``` 
-Knowledge and discovery should be on the same topic. 
+```
+Knowledge and discovery should be on the same topic.
 Solution: simply switch and o the phrase mining first.
 
 TopMine: freq contiguous patterns, agglomerate merging of adjecents by , document segmentation to count phrase acuracy, calculate *rectified*  phrase frequency afteer pattern, do phrase ranking like KERT . *After* all that phrase LDA
@@ -1240,14 +1204,19 @@ TopMine: freq contiguous patterns, agglomerate merging of adjecents by , documen
  - using about 300 labels for 1GB corpus.
  - Take advantage of random forest to bootstrap differen areas with diff labels
  efficient and linearly escalable
- 
+
  Both TopMine and Segphrase escalable to other languages
 
- 
- 
+
+
 
 
 
 TODO: really clear up data anti-monotonic constraints
 TODO: review for a single branch FPTree how the final patterns are generated, is this the only stop condition for the recursion?
 TODO: review that this assertion is obvious to you:  "in clospan if s is a superpattern of s' and their projected databases have the same size, then the subpattern s' can be pruned."
+
+Class info:
+Jia Wei Han
+piazza: https://piazza.com/class/jc9q3te0qoskz
+course staff: cs-412ds-staff@lists.cs.illinois.edu

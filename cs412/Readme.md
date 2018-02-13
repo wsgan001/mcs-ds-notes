@@ -1173,13 +1173,81 @@ either serial A → B , parallel A | B or regexps (A|B)C*(D → E)
 modified versions of apriori and projection but details of this are not really explained in video or apparently within real scope of evaluation/course. Just mentioned for completion in survey. Invitation to the reader to figure out diffs.
 
 
+# Mining Quality Phrases from data
 
+Unigrams are often ambiguous, but phrases naturally meaningful unambiguous semantic unit. General principle is to rely on information redundancy, data-driven criteria rather human input for determining boundaries and salience.
 
+Methodologies are frequent pattern and collocation analysis, phrasal segmentation, quality phrase assesment
+
+ - Previous work
+ - TopMine: no training data
+ - SegPhrase: tiny traiing data
+
+## Previous work
+
+"chunking" from the NLP community model a phrase as a sequence labeling problem. It needed a lot of annotation from humans.
+``` 
+(B-NP, INP, O-PH ...etc) human annotate before phrase, after, in etc.
+``` 
+work w supervised model. Accuracy is high but doesn't scale to other langs.
+
+## Unsupervised phrase mining and topic modelling
+
+they are closely linked . Represent doc by multiple topics in different proportions. Each topic represented by a word distribution
+
+*Statistical topic modelling algorithms*, the most common is *LDA* (Latent Dirichlet Allocation)
+
+### Strategies on Phrase mining and Topic Modelling
+ 
+ - Generate bag-of-words simultaneously with sequence of tokens
+ - Post bag-of-words model inferenece, visualize topics in n-grams (first topic, then phrase mining).
+ - Before BoW mine phrases (first phrase minig, then topic modeling LDA)
+ 
+### Simultaneous Phrase and topic inferrement (all ~ previous work)
+ - Bigram topic model: try w probabilistic model given previous words
+ - Topical n-grams: same extended to more n grams not just previous one
+ - Phrase discovery LDA; view each sentence as a time series (overfitting)
+ 
+### First topic modeling, then phrase construction 
+ - *TurboTopics*: phrase construction as post-processing step to LDA
+   - perform LDA → assing each token a topic label
+   - merge adjecent ngrams w same topic level ~ roughly
+   - end recursive merging when all significant adjecent n-grams have been merged
+ - *KERT*:
+   - Run bag of words model and assign topic label
+   - Perform *frequent pattern mining* to extract phrases within each topic
+   - Perform phrase ranking based on four criterion:
+      - popularity 
+	  - concordance ("strong tea")
+	  - informativeness ("this paper" → pretty bad)
+	  - completeness ("vector machine" vs "support vector machine")
+   - kert btw allows comparability of phrases of mixed lengths
+   
+### First phrase then topic modelling: TopMine
+No training set. 
+With strategy t2 two tokens in the same phrase may be assigned different topics:
+
+``` 
+ knowledge (1) discovery (2) using _latest squares_ (2) support (1) vector (2) machine classifiers (1)
+``` 
+Knowledge and discovery should be on the same topic. 
+Solution: simply switch and o the phrase mining first.
+
+TopMine: freq contiguous patterns, agglomerate merging of adjecents by , document segmentation to count phrase acuracy, calculate *rectified*  phrase frequency afteer pattern, do phrase ranking like KERT . *After* all that phrase LDA
+
+### Segphrase (small set of training data)
+ - such data may come from humans or general knowledge base like DBPedia
+ - using about 300 labels for 1GB corpus.
+ - Take advantage of random forest to bootstrap differen areas with diff labels
+ efficient and linearly escalable
+ 
+ Both TopMine and Segphrase escalable to other languages
+
+ 
+ 
 
 
 
 TODO: really clear up data anti-monotonic constraints
-TODO: - GSP production of candidates
-TODO: - Generation of projections with placeholders _. Exactly how to interpret
 TODO: review for a single branch FPTree how the final patterns are generated, is this the only stop condition for the recursion?
 TODO: review that this assertion is obvious to you:  "in clospan if s is a superpattern of s' and their projected databases have the same size, then the subpattern s' can be pruned."

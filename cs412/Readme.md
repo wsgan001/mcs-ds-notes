@@ -511,7 +511,6 @@ Note: Basically my intuition here is that whatever the real gold is, it shall be
 χ2 also fails. χ2 = 670 suggesting strong correlation but
 the observed value (B):100 >> expected (B):11.85 so is it really correlated?
 
-TODO: the fail of χ2 is less obvious. Clarify
 
 ## Null invariant measures
 
@@ -1062,7 +1061,7 @@ Use sequential pattern mining. First model each statement with a hash. Treat the
  - Interestingness: min_sup >=0.02, min_conf >= 0.06
 
 <!--
-TODO: get this whole portion more clearly or simplify if just fluff
+ Just fluff for the moment, meta-rules and constraint based mining:
  Meta-rule can contain partially instantiated predicates and constants:
  ```
  P1(X,Y) ^ P2(X,W) → buys(x,"ipad")
@@ -1091,8 +1090,6 @@ Two types: Pattern or data space pruning constraints, leading to different patte
 ### Dataspace constraints
  - Data succint: data space can be pruned at the initial pattern mining process
  - Data anti-monotonic: if t doesn't satisfy c, t can be pruned to reduce data processing effort
-
-TODO: data antimonotonic only for ands?
 
 ## Pattern anti-monotonicity
 
@@ -1148,6 +1145,7 @@ that is what they mean by recursive data pruning. You have keep applying the con
 
 Succint constraints can be enforced by directly manipulating the data (presumabily in ways others than simply ordering it and different from data antimonotonicity)
 
+A nice phrase from the book is succint constraints are "precounting-prunable." We know before we start counting that we can shorten the data to the sets that comply.
 some succint constraints:
 
 - patterns without item i (pattern space pruning) - remove i from db and then mine
@@ -1156,7 +1154,10 @@ some succint constraints:
   - start with only items <= v (pattern?)
   - remove transactions with high price items only (data?)
 
-sum(S.price) > 20 is not because you cannot determine beforehand sum of price, it just keeps increasing. (Most you can say about this is monotonic !?)
+sum(S.price) > 20 is not because you cannot determine beforehand sum of price, it just keeps increasing. (Most you can say about this is monotonic with respect to pattern space pruning)
+
+Key difference between succint and data antimonotonic constraints is that you can do the former before counting, the latter you have to keep evaluating as you figure out if items are frequent enough or not.
+We can enumerate all and only those sets that are guaranteed to satisfy the constraint.
 
 ## Convertible Constraints
 
@@ -1213,8 +1214,6 @@ element_count(5) or S contains {PC,camera}
 if a sequence s1 wrt S violates c3 s1 can be removed
 
 c3: sum(s.price) >= v
-
-TODO: clarify data antimonotonic in sequences after coding pa 2
 
 ### Succint constraints
 
@@ -1307,11 +1306,6 @@ TopMine: freq contiguous patterns, agglomerate merging of adjecents by , documen
  efficient and linearly escalable
 
  Both TopMine and Segphrase escalable to other languages
-
-
-
-TODO: really clear up data anti-monotonic constraints
-TODO: review for a single branch FPTree how the final patterns are generated, is this the only stop condition for the recursion?
 
 Class info:
 Jia Wei Han

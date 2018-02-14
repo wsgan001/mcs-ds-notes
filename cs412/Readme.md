@@ -1,5 +1,91 @@
 # Introduction to Data Mining - Spring 2018
-Fabio Arciniegas Started January 16, 2018 (07:45:06) 
+Fabio Arciniegas Started January 16, 2018 (07:45:06)
+
+   * [Pattern Discovery: Basic Concepts](#pattern-discovery-basic-concepts)
+      * [What is Pattern Discovery?](#what-is-pattern-discovery)
+      * [Frequent Patterns](#frequent-patterns)
+      * [Association Rules](#association-rules)
+         * [Association Rule Mining](#association-rule-mining)
+      * [Compressed representation: closed and max patterns](#compressed-representation-closed-and-max-patterns)
+         * [Closed Patterns](#closed-patterns)
+         * [Max Patterns](#max-patterns)
+   * [Efficient Pattern Mining Methods](#efficient-pattern-mining-methods)
+      * [Downward closure property](#downward-closure-property)
+      * [Apriori algorithm](#apriori-algorithm)
+      * [Self joining and pruning](#self-joining-and-pruning)
+      * [SQL pseudocode implementation (from slides not assignment)](#sql-pseudocode-implementation-from-slides-not-assignment)
+      * [Extensions or improvements to Apriori](#extensions-or-improvements-to-apriori)
+      * [Partitioning](#partitioning)
+      * [Direct hashing and pruning](#direct-hashing-and-pruning)
+      * [Vertical Data Format ECLAT](#vertical-data-format-eclat)
+      * [FPGrowth - Pattern Growth Approach](#fpgrowth---pattern-growth-approach)
+      * [Mining closed datasets with CLOSET ](#mining-closed-datasets-with-closet)
+   * [Pattern Evaluation](#pattern-evaluation)
+      * [Lift](#lift)
+      * [χ2](#χ2)
+         * [Too many Null transactions spoil Lift and χ2](#too-many-null-transactions-spoil-lift-and-χ2)
+      * [Null invariant measures](#null-invariant-measures)
+      * [Imbalance Ratio](#imbalance-ratio)
+   * [Mining diverse frequent patterns](#mining-diverse-frequent-patterns)
+      * [Multi-levels](#multi-levels)
+      * [Redundancy Filtering](#redundancy-filtering)
+      * [Customized minsup for different items](#customized-minsup-for-different-items)
+      * [Multi dimensional rules](#multi-dimensional-rules)
+      * [Mining quantitative associations](#mining-quantitative-associations)
+      * [Mining extraordinary patterns](#mining-extraordinary-patterns)
+      * [Mining negative correlations](#mining-negative-correlations)
+         * [Negative correlated patterns](#negative-correlated-patterns)
+      * [Mining Compressed patterns](#mining-compressed-patterns)
+      * [Redundancy aware top-k patterns](#redundancy-aware-top-k-patterns)
+      * [Mining collosal patterns with Pattern Fusion](#mining-collosal-patterns-with-pattern-fusion)
+         * [Example](#example)
+         * [core patterns and robustness](#core-patterns-and-robustness)
+         * [Pattern-fusion Algorithm itself](#pattern-fusion-algorithm-itself)
+   * [Sequential patterns and Sequential pattern mining](#sequential-patterns-and-sequential-pattern-mining)
+      * [Sequential pattern mining](#sequential-pattern-mining)
+      * [Algorithms](#algorithms)
+      * [GSP](#gsp)
+      * [SPADE](#spade)
+      * [Prefix Span](#prefix-span)
+      * [CloSpan](#clospan)
+   * [Graph pattern and mining](#graph-pattern-and-mining)
+      * [Breakdown of algorithms](#breakdown-of-algorithms)
+      * [Apriori method for graph mining](#apriori-method-for-graph-mining)
+      * [Generating new candidates](#generating-new-candidates)
+      * [gSpan - Pattern growth approach](#gspan---pattern-growth-approach)
+      * [CloseGraph: Mining closed graph patterns](#closegraph-mining-closed-graph-patterns)
+         * [CloseGraph : expansion of gSpan](#closegraph--expansion-of-gspan)
+         * [Applications and performance](#applications-and-performance)
+      * [SpiderMine: mining top-K large structural patterns in a massive network](#spidermine-mining-top-k-large-structural-patterns-in-a-massive-network)
+         * [Algorithm](#algorithm)
+      * [Application I: Graph indexing](#application-i-graph-indexing)
+      * [Application II: Graph similarity search](#application-ii-graph-similarity-search)
+   * [Constrained Based Mining](#constrained-based-mining)
+      * [Different kinds of pruning constraints](#different-kinds-of-pruning-constraints)
+         * [Pattern Constraints](#pattern-constraints)
+         * [Dataspace constraints](#dataspace-constraints)
+      * [Pattern anti-monotonicity](#pattern-anti-monotonicity)
+      * [Pattern monitonicity](#pattern-monitonicity)
+      * [Data Anti-monotonicity](#data-anti-monotonicity)
+      * [Succint constraints](#succint-constraints)
+      * [Convertible Constraints](#convertible-constraints)
+      * [Multiple convertible constraints](#multiple-convertible-constraints)
+      * [Constraint based sequential pattern mining](#constraint-based-sequential-pattern-mining)
+      * [anti-monotonicity](#anti-monotonicity)
+         * [Data antimonotonic](#data-antimonotonic)
+         * [Succint constraints](#succint-constraints-1)
+         * [Convertible](#convertible)
+      * [Time based constraints](#time-based-constraints)
+      * [Episodes](#episodes)
+   * [Mining Quality Phrases from data](#mining-quality-phrases-from-data)
+      * [Previous work](#previous-work)
+      * [Unsupervised phrase mining and topic modelling](#unsupervised-phrase-mining-and-topic-modelling)
+         * [Strategies on Phrase mining and Topic Modelling](#strategies-on-phrase-mining-and-topic-modelling)
+         * [Simultaneous Phrase and topic inferrement (all ~ previous work)](#simultaneous-phrase-and-topic-inferrement-all--previous-work)
+         * [First topic modeling, then phrase construction](#first-topic-modeling-then-phrase-construction)
+         * [First phrase then topic modelling: TopMine](#first-phrase-then-topic-modelling-topmine)
+         * [Segphrase (small set of training data)](#segphrase-small-set-of-training-data)
+
 
 --- Week 1
 # Pattern Discovery: Basic Concepts
@@ -14,7 +100,6 @@ Fabio Arciniegas Started January 16, 2018 (07:45:06)
 
 ```
 | id | transactions |
-|----|--------------|
 | 10 | B,D,N        |
 | 20 | B,C,D        |
 | 30 | B,D,E        |
@@ -38,15 +123,14 @@ min_rel_sup == .5
 sup(B) == 3
 rel_sup(B) == 3/5 == 60% > min_rel_sup → frequent
 rel_sup(C) == 2/5 < min_rel_sup
-
 ```
 
 ## Association Rules
 
 X → Y (s,c)
+
 *s = support*: Probability that transaction supports X U Y
 
-TODO: why call it a probability when you can directly count it?
 *c = confidence*: Conditional probability that a transaction containing X also contains Y
 
 ```
@@ -128,9 +212,9 @@ Note there can't be an M only. All Max are closed.
 
 conversely, if there is a subset that is not frequent, S is not.
 
-Scalable minin methods:
+Scalable mining methods:
  - Apriori
- - Vertical data format: eclat
+ - Vertical data format: ECLAT
  - FPGrowth
 
 ## Apriori algorithm
@@ -268,23 +352,30 @@ Tradeoff here is Tid sets can be very long. Expensive intersects and expensive i
 
 The first step same as a priori: generate a list L of 1-itemset frequent patterns and their frequency. Order it.
 
-To construct an FPTree go through the whole database a second time, creating a tree with a branch per transaction, considering each itemset in L order. for example
+To construct an FPTree go through the whole database a second time, creating a tree of elements and their count. Do so by adding items of each transaction, considering each itemset in L order. for example
 
 
 ```
+        TID             L (1-itemset frequent patterns)
+        
+| t1 | i1,i2,i5 |   | i2 | 4 |
+| t2 | i2,i4    |   | i1 | 2 |
+| t3 | i2,i3    |   | i4 | 2 |
+| t4 | i1,i2,i4 |   | i5 | 1 |
 
-        TID             L                   FPTree
-                                                {}          {}              {}
-| t1 | i1,i2,i5 |   | i2 | 4 |               i2 : 1       i2 : 2        i2: : 3 __
-| t2 | i2,i4    |   | i1 | 2 |               /            /   \         /     \    ---\
-| t3 | i2,i3    |   | i4 | 2 |               i1: 1             i1: 1 i4: 1    i1: 1  i4: 1  i3: 1
-| t4 | i1,i2,i4 |   | i5 | 1 |             /            /             /
-                                         i5: 1       i5: 1         i5 : 1
+      FPTree
+          {}          {}              {}
+       i2 : 1       i2 : 2        i2: : 3 __
+       /            /   \         /     \    ---\
+     i1: 1       i1: 1 i4: 1    i1: 1  i4: 1  i3: 1
+     /            /             /
+   i5: 1       i5: 1         i5 : 1
 
-                                                      after processing t1 , t2, t3 respectively
+  afer t1   ....     t2          ....    t3 ...
+
 ```
 
-once the tree is constructed mining is reduced to creating "conditional databases", by considering each member of L a suffix and recording the branches as candidates in the conditional database.
+Once the tree is constructed mining is reduced to creating "conditional databases", by considering each member of L a suffix and recording the branches as candidates in the conditional database.
 This is done starting in reverse L order. for example for i5 (with more items, see page 258) we end up with two paths
 
 {i2,i1,i3}:1
@@ -326,21 +417,20 @@ Evaluation can be subjective too: query based, against specific knowledge base (
 
 Limitations of Support/confidence
 
+```
 |                | play ball | not play ball | sum row |
 | eat cereal     |       400 |           350 |     750 |
 | not eat cereal |       200 |            50 |     250 |
 | sum col        |       600 |           400 |    1000 |
 
-
-```
 ball → eat
 s = sup(X U Y) = 400/1000
 c = sup(X U Y) / sup (X) = 400/600
+
+play ball → eat cereal [40%,66.7%]
 ```
 
-play ball → eat cereal [40%,11.7%]
-
-seems good, high s,c. but notice
+seems good, high s,c. but notice:
 ```
 no ball → eat
 s = 350/1000
@@ -348,17 +438,19 @@ c = 350/400
 
 ```
 not play ball → eat cereal [35%,87.5%] pretty good looking too.
-They support mutually exclusive reactions. we need other ways of evaluating.
+They support mutually exclusive conclusions!. we need other ways of evaluating.
 
+BTW, the first association rule is pretty intuitively misleading as the overall % of students eating cereal is 75% > 66.7%
 
-## Lift and χ2
+## Lift
 
-### Lift
 Lift (B,C) = c(B,C) / S(c)  = sup(B U C) / (sup(B) * sup(C))
 
+```
 Lift (B,C) = 1  B and C independent
            > 1  positively correlated
 		   < 1  negatively correlated
+```
 
 Range of lift is [0, inf)
 
@@ -370,7 +462,7 @@ Lift(play,not eat): 200/1000 / (6/10 * 250/1000) = 1.33  > 1 positively correlat
 
 Solves our problem becasue we can tell one is positively correlated and one is negatively.
 
-### χ2
+## χ2
 
 χ2 = sum_of( (observed - expected )^2/expected )
 
@@ -383,11 +475,12 @@ Notice the expected value (given the proportion of the row to to totals) added.
 For example the proportion of all Cs to the total is 3/4. Out of 600 Bs we would expect 3/4 to b C:
 600*3/4 = 450
 
+```
 |         | B         | not B     | sum row |
 | C       | 400 (450) | 350 (300) |     750 |
 | not C   | 200 (150) | 50 (100)  |     250 |
 | sum col | 600       | 400       |    1000 |
-
+```
 
 χ2 is calculated over the full table:
 
@@ -397,10 +490,12 @@ we expect them to be correlated but we see C is less than expected so it most be
 
 ### Too many Null transactions spoil Lift and χ2
 
+```
 |         |    B |  not B | sum row |
 | C       |  100 |   1000 |    1100 |
 | not C   | 1000 | 100000 |  101000 |
 | sum col | 1100 | 101000 |  102100 |
+```
 
 Lift (B,C) is very high 8.4 >> 1 so they should be positively correlated
 
@@ -431,7 +526,7 @@ Other measures are null invariant. They are listed in page 269 and include:
 
 They are all null invariant and in range [0,1]
 
-# Imbalance Ratio
+## Imbalance Ratio
 
 IR(A,B) = |S(A) - S(B)| / (S(A) + S(B) - S(A U B))
 
@@ -459,7 +554,7 @@ You could have a *uniform* support threshold but either loose smaller patterns a
 
 *shared multi-level mining*: Instead we can have multiple, *reduced* levels of support and computer on one level with one threshold and with a smaller one in another.
 
-Note when we *generate* candidates for lower level we use the suppor for that level
+Note when we *generate* candidates for lower level we use the support for that level
 
 ## Redundancy Filtering
 
@@ -499,15 +594,15 @@ Age, salary as exact numbers are useless (too specific). We need groups:
 
 Gender = Female → Wage = mean $7 (overall mean $9!)
 
-LHS a subset of the population
-RHS an extraordinary behavior of this subset
+- LHS a subset of the population
+- RHS an extraordinary behavior of this subset
 
-Rule accepted only if 2 test fonfirms the inferene rule
+Rule accepted only if statistical test (such as Z-test) confirms the rule with confidence inference
 
 ## Mining negative correlations
 
-rare is low support but interesting - individualized minsup
-*negative* is different: negatively correlated, unlikely to happen together (?likely to NOT?)
+rare is low support but interesting so use individualized minsup
+*negative* is different: negatively correlated are unlikely to happen together (particularly if they are freq so it is likely they are not together)
 
 Buy prius →  buy hummer
 
@@ -547,7 +642,7 @@ P(B|A) = P (B U A) / P(A)
 
 ## Mining Compressed patterns
 
-We want a balanced between closed patterns, which have too much emphasis on support and no compression and max patterns, which have lots of compression but a lot of data loss.
+We want a balance between closed patterns, which have too much emphasis on support and no compression and max patterns, which have lots of compression but a lot of data loss.
 
 The concept is pattern distance:
 
@@ -564,7 +659,7 @@ Basically you don't want just significance because you may ignore whole clusters
 
 more detail and diagram pg 311.
 
-## Mining collosal patterns with Pattern Fusion
+## Mining collosal patterns with PatternFusion
 
 Methods so far only good for patterns length < 10. Because of downward closure there are too many subsets (Small number for 1-itemsets, larger for 2, etc..)
 
@@ -674,7 +769,7 @@ Sequential in vertical format.
 
  - Convert from seq db to vertical format
  - Combine by looking at order (smaller indexes)
-``` 
+```
 | SID | Sequence          |     | SID | EID | Items |       |   2 |   4 | ae    |
 |-----|-------------------|     |-----|-----|-------|       |   3 |   1 | ef    |
 |   1 | <a(abc)(ac)d(cf)> |     |   1 |   1 | a     |       |   3 |   2 | ab    |
@@ -701,7 +796,7 @@ For "a":                 for "b":         we can combine by looking at order, us
 |   2 |   4 |            |   4 |   5 |    |   3 |                   2 |     5 |
 |   3 |   2 |                             |   4 |                   3 |     5 |
 |   4 |   3 |
-``` 
+```
 
 ## Prefix Span
 
@@ -722,12 +817,13 @@ Look at the length-k+1 sequential patterns ```<aa> <ab>``` and advance by divide
 Main advantage is there are no candidates generated and db keeps shrinking. also pointer implementation tricks help representation keep compact in memory
 
 ## CloSpan
+A way to grow similar to Prefixspan but trying to prune parts of the tree given the fact that we care only about closed patterns.
 
 Closed pattern if there is no super pattern with the *same* support.
 
 We are interested b/c reduce number of redundant patterns. Attain same expressive power with losless compression
 
-Key observation: s super_of s1 if two projected dbs have same size (not very clear how that is true or translates but merely mentioned.
+Key observation: s super_of s1 if two projected dbs have same size.  This is because the supporting projection of s1 is always smaller except when the support is exactly the same as that of s, in which case you have a closed pattern and can forget about s1 just grow s.
 
 
 ```
@@ -801,13 +897,14 @@ gSpan, as with the other pattern growth approaches is the DFS version. It is not
 
 Since duplicates are a problem, the *key observation* is: define an order to generate subgraphs.
 
-You create such order by doing a DFS Spanning tree: flatten a graph into a sequence using depth-first search.
+You create such order by doing a DFS Spanning tree: flatten a graph into a tree using depth-first search.
 
 Then you record the *right-most path extension* as a sequence and use that sequence to drive growth of the tree from k to k+1 (details elided)
 
 The right-most path extension works like this:
 
-Given a spanning tree (a tree subgraph of the graph that uses the minimum number of edges) that gives each node an index, you can generate a sequence, starting at node 0, such that you every time you follow the smallest index node available:
+A spanning tree (a tree subgraph of the graph that uses the minimum number of edges), gives each node an index. 
+You can take those indexes and generate a sequence, starting at node 0, such that you every time you follow the smallest index node available:
 
 ```
                   -----
@@ -949,6 +1046,10 @@ The main point is that if graph G contains the major part of query graph q, G sh
 
 suppose the query graph has 5 features, *relaxation threshold* is it can miss at most 2 features then G1, G2, G3 can be pruned.
 
+## Application: software bug mining
+
+Use sequential pattern mining. First model each statement with a hash. Treat the code as sequences of those hashes. Notice that certain patterns coming from copy/paste will be very similar to others except for one item or two. In general sequential pattern mining we let the gap between items be anything, here we restrict gap to a small number to try to find places where it is almost the same code by not. Other steps/metrics of comparision used but that's the main idea.
+
 --- Week 4
 
 # Constrained Based Mining
@@ -975,7 +1076,7 @@ Method to find metarules given P1^P2^Pn → Q1^Q2^Qr: ( " l → r  ")
 
 - data space pruning example: find those patterns containing "i": we can mine only i-projected database. we pruned the rest of the data.
 
-- pattern space pruning example: find those patterns NOT containing "i": remove i from db and mine, so we no longer have to test for that pattern. 
+- pattern space pruning example: find those patterns NOT containing "i": remove i from db and mine, so we no longer have to test for that pattern.
 
 ## Different kinds of pruning constraints
 
@@ -1209,12 +1310,8 @@ TopMine: freq contiguous patterns, agglomerate merging of adjecents by , documen
 
 
 
-
-
-
 TODO: really clear up data anti-monotonic constraints
 TODO: review for a single branch FPTree how the final patterns are generated, is this the only stop condition for the recursion?
-TODO: review that this assertion is obvious to you:  "in clospan if s is a superpattern of s' and their projected databases have the same size, then the subpattern s' can be pruned."
 
 Class info:
 Jia Wei Han
